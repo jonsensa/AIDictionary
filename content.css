@@ -1,0 +1,114 @@
+#context-explainer-trigger,
+#context-explainer-box,
+#context-explainer-box * {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+#context-explainer-trigger {
+  position: fixed;
+  z-index: 2147483647;
+  padding: 7px 11px;
+  border: 1px solid #1d4ed8;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 25%);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+#context-explainer-trigger:hover {
+  background: #1d4ed8;
+}
+
+#context-explainer-box {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  width: min(360px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 25%);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#context-explainer-box strong {
+  font-size: 16px;
+}
+
+#context-explainer-box header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+#context-explainer-box .context-explainer-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#context-explainer-box .context-explainer-preview {
+  max-height: 150px;
+  margin: 0 0 14px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  white-space: pre-wrap;
+}
+
+#context-explainer-box button {
+  padding: 6px 10px;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #111827;
+  cursor: pointer;
+}
+
+#context-explainer-box .context-explainer-close {
+  padding: 4px 8px;
+}
+
+#context-explainer-box .context-explainer-primary {
+  border-color: #1d4ed8;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+#context-explainer-box form {
+  display: grid;
+  margin-top: 14px;
+}
+
+#context-explainer-box textarea {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 9px;
+  resize: vertical;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+#context-explainer-box .context-explainer-response {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
