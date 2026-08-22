@@ -75,6 +75,23 @@ for each choice and meaningful alternatives considered.
   backend with `fetch`, then displays returned answers or request errors.
 - Implemented: action buttons are disabled while a request is running to prevent
   accidental duplicate submissions.
+- Confirmed: the interface uses a restrained macOS/iPadOS-inspired visual system
+  with translucent materials, system typography, subtle depth, and short motion.
+- Implemented: both the trigger and lookup card position themselves near the
+  selection, prefer available space above it, fall back below it, and remain
+  inside the viewport.
+- Implemented: the visual layer supports light and dark system appearance and
+  respects reduced-motion preferences.
+- Confirmed: the default visual theme is now `dark-utility`, inspired by quiet
+  macOS utility panels: near-black material, compact type, integrated internal
+  regions, minimal borders, and restrained translucency.
+- Preserved: the previous brighter graphite treatment remains available in CSS
+  as the `soft-glass` alternate theme. The active theme is selected by the
+  UI switch in the lookup header: UI1 is `soft-glass` and UI2 is `dark-utility`.
+- Implemented: selected source text is collapsed into a `Selected text · 1`
+  annotation that can be expanded when the user wants to review the source.
+- Implemented: summary requests, questions, answers, loading states, and errors
+  accumulate as a chat-style conversation instead of replacing one status line.
 - Not yet decided: whether summarization starts automatically or requires an
   explicit click.
 - Not yet decided: whether React is necessary for the first version.
