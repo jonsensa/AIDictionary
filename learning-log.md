@@ -26,6 +26,35 @@ explained.
 - One small, practical follow-up
 -->
 
+## 2026-08-22 — Backend connection checkpoint
+
+### Project status
+
+- The extension displays an **Ask AI** trigger beside selected text.
+- The context window supports summary and question actions.
+- Both actions send JSON requests to the local Node.js backend.
+- Loading, validation, success, and network-error messages appear in the window.
+- The user tested and confirmed that the browser-to-backend connection works.
+
+### Resume here
+
+The backend currently returns placeholder answers. The next milestone is to
+connect the backend to an LLM provider without exposing the API key inside the
+Chrome extension.
+
+Before implementing that milestone:
+
+1. Review the `fetch()` request in `content.js`.
+2. Review request parsing and validation in `backend/server.js`.
+3. Choose the LLM provider and model.
+4. Store its API key in a backend-only environment variable.
+
+### Still to learn
+
+- How `async`, `await`, promises, and network failures work.
+- Why API secrets must remain on the backend.
+- How the backend will call an external LLM API.
+
 ## 2026-08-17 — Reading selected webpage text
 
 ### Practiced or demonstrated

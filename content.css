@@ -80,6 +80,11 @@
   cursor: pointer;
 }
 
+#context-explainer-box button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 #context-explainer-box .context-explainer-close {
   padding: 4px 8px;
 }

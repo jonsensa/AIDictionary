@@ -33,9 +33,9 @@ The supplied learning plan suggests a possible Chrome extension built with:
 - a backend API
 - an LLM API
 
-The first version deliberately uses plain JavaScript and CSS. React, TypeScript,
-a backend, and an LLM API remain possible later additions rather than current
-dependencies.
+The first version deliberately uses plain JavaScript and CSS. A dependency-free
+Node.js HTTP backend now provides the initial API boundary. React, TypeScript,
+and an LLM API remain possible later additions rather than current dependencies.
 
 ## Possible components
 
@@ -67,6 +67,14 @@ for each choice and meaningful alternatives considered.
   produce local placeholder responses; no AI or backend request is made yet.
 - Implemented: events originating inside extension UI are ignored by the
   webpage-level selection listener so users can interact with the UI safely.
+- Implemented: `backend/server.js` exposes `POST /api/explain`, parses JSON,
+  validates summary and question requests, and returns placeholder JSON answers.
+- Implemented: the local backend listens on port 3000 and permits development
+  requests from the extension through CORS response headers.
+- Implemented: the floating UI sends summary and question requests to the local
+  backend with `fetch`, then displays returned answers or request errors.
+- Implemented: action buttons are disabled while a request is running to prevent
+  accidental duplicate submissions.
 - Not yet decided: whether summarization starts automatically or requires an
   explicit click.
 - Not yet decided: whether React is necessary for the first version.

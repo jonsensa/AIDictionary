@@ -1,5 +1,28 @@
 const TRIGGER_BUTTON_ID = 'context-explainer-trigger'
 const EXPLANATION_BOX_ID = 'context-explainer-box'
+const API_URL = 'http://localhost:3000/api/explain'
+
+async function requestExplanation(action, selectedText, question = '') {
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action,
+      selectedText,
+      question,
+    }),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'The backend request failed.')
+  }
+
+  return data.answer
+}
 //Injecting to chorme
 
 function removeTriggerButton() {
@@ -74,9 +97,24 @@ function createExplanationBox(selectedText) {
   response.setAttribute('aria-live', 'polite')
   response.textContent = 'Choose Summarize or ask a question.'
 
+  async function showAnswer(action, question = '') {
+    summarizeButton.disabled = true
+    askButton.disabled = true
+    response.textContent = 'Loading...'
+
+    try {
+      const answer = await requestExplanation(action, selectedText, question)
+      response.textContent = answer
+    } catch (error) {
+      response.textContent = `Error: ${error.message}`
+    } finally {
+      summarizeButton.disabled = false
+      askButton.disabled = false
+    }
+  }
+
   summarizeButton.addEventListener('click', () => {
-    response.textContent =
-      'Summary request captured. The AI connection is our next backend milestone.'
+    showAnswer('summarize')
   })
 
   questionForm.addEventListener('submit', (event) => {
@@ -89,7 +127,7 @@ function createExplanationBox(selectedText) {
       return
     }
 
-    response.textContent = `Question captured: ${question}`
+    showAnswer('question', question)
   })
 
   questionForm.append(questionLabel, questionInput, askButton)
