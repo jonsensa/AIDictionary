@@ -85,9 +85,30 @@ for each choice and meaningful alternatives considered.
 - Confirmed: the default visual theme is now `dark-utility`, inspired by quiet
   macOS utility panels: near-black material, compact type, integrated internal
   regions, minimal borders, and restrained translucency.
-- Preserved: the previous brighter graphite treatment remains available in CSS
-  as the `soft-glass` alternate theme. The active theme is selected by the
-  UI switch in the lookup header: UI1 is `soft-glass` and UI2 is `dark-utility`.
+- Confirmed: UI1 and UI2 are separate interface directions, not light and dark
+  modes of one design. The lookup-header switch changes between them.
+- Implemented: UI1 (`soft-glass`) uses spatial medium-grey translucent material,
+  light typography, softly layered controls, and ambient depth.
+- Implemented: UI2 (`dark-utility`) retains its near-black compact technical
+  interface with integrated regions and restrained borders.
+- Confirmed: UI1 and UI2 share identical window and internal layout geometry;
+  switching themes changes material and visual language without resizing the UI.
+- Refined: UI1 uses darker grey translucent glass rather than pale white-grey,
+  while preserving stronger blur and spatial depth than UI2.
+- Refined: UI1 now favors environmental visibility over material opacity. A
+  brightness-adjusted backdrop keeps light text readable while the page remains
+  recognizable through the glass.
+- Implemented: UI1 simulates optical edge refraction with a non-uniform masked
+  rim, brighter upper corners, faint inner highlights, and opposing edge shade.
+  This is a lightweight CSS illusion rather than shader-based distortion.
+- Refined: UI1 uses only a 2% near-black material tint, making its base surface
+  98% transparent. Its darker appearance comes from a 30% backdrop-brightness
+  filter, not from an opaque overlay.
+- Implemented: the lookup window remains fixed relative to the viewport while
+  the webpage scrolls and can be dragged by its header with mouse, pen, or touch.
+  Dragging is clamped to the viewport so the window cannot be lost off-screen.
+- Refined: UI2's primary material is approximately 30% darker and 30% more
+  transparent, with backdrop brightness maintaining its near-black character.
 - Implemented: selected source text is collapsed into a `Selected text · 1`
   annotation that can be expanded when the user wants to review the source.
 - Implemented: summary requests, questions, answers, loading states, and errors

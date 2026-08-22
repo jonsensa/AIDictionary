@@ -52,6 +52,60 @@ function positionNearSelection(element, selectionRectangle, gap = 12) {
   element.style.top = `${top}px`
 }
 
+function makeDraggable(element, handle) {
+  let dragOffsetX = 0
+  let dragOffsetY = 0
+
+  handle.addEventListener('pointerdown', (event) => {
+    if (event.target instanceof Element && event.target.closest('button')) {
+      return
+    }
+
+    event.preventDefault()
+
+    const elementRectangle = element.getBoundingClientRect()
+    dragOffsetX = event.clientX - elementRectangle.left
+    dragOffsetY = event.clientY - elementRectangle.top
+
+    element.style.animation = 'none'
+    handle.classList.add('context-explainer-dragging')
+    handle.setPointerCapture(event.pointerId)
+  })
+
+  handle.addEventListener('pointermove', (event) => {
+    if (!handle.hasPointerCapture(event.pointerId)) {
+      return
+    }
+
+    const viewportPadding = 8
+    const maximumLeft = window.innerWidth - element.offsetWidth - viewportPadding
+    const maximumTop = window.innerHeight - element.offsetHeight - viewportPadding
+    const left = Math.min(
+      Math.max(event.clientX - dragOffsetX, viewportPadding),
+      Math.max(maximumLeft, viewportPadding),
+    )
+    const top = Math.min(
+      Math.max(event.clientY - dragOffsetY, viewportPadding),
+      Math.max(maximumTop, viewportPadding),
+    )
+
+    element.style.left = `${left}px`
+    element.style.top = `${top}px`
+  })
+
+  function finishDragging(event) {
+    if (!handle.hasPointerCapture(event.pointerId)) {
+      return
+    }
+
+    handle.releasePointerCapture(event.pointerId)
+    handle.classList.remove('context-explainer-dragging')
+  }
+
+  handle.addEventListener('pointerup', finishDragging)
+  handle.addEventListener('pointercancel', finishDragging)
+}
+
 async function requestExplanation(action, selectedText, question = '') {
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -253,6 +307,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
   )
   document.body.appendChild(box)
   positionNearSelection(box, selectionRectangle)
+  makeDraggable(box, header)
 }
 
 function createTriggerButton(selectedText, selectionRectangle) {
