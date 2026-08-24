@@ -1,10 +1,14 @@
 const TRIGGER_BUTTON_ID = 'context-explainer-trigger'
 const EXPLANATION_BOX_ID = 'context-explainer-box'
+const FOLLOW_UP_CLASS = 'context-explainer-follow-up'
 const API_URL = 'http://localhost:3000/api/explain'
+const MAX_INPUT_HEIGHT = 112
 const UI_THEMES = {
   ui1: 'soft-glass',
   ui2: 'dark-utility',
+  ui3: 'classic-glass',
 }
+const UI_ORDER = ['ui1', 'ui2', 'ui3']
 let activeUi = 'ui2'
 
 function applyActiveTheme(element) {
@@ -50,6 +54,36 @@ function positionNearSelection(element, selectionRectangle, gap = 12) {
 
   element.style.left = `${left}px`
   element.style.top = `${top}px`
+}
+
+function positionFollowUp(surface, parentBox, surfaceIndex) {
+  const viewportPadding = 8
+  const gap = 12
+  const offset = 20 * ((surfaceIndex - 1) % 5)
+  const parentRectangle = parentBox.getBoundingClientRect()
+  const surfaceRectangle = surface.getBoundingClientRect()
+  const preferredLeft = parentRectangle.right + gap + offset
+  const fallbackLeft = parentRectangle.left + offset
+  const left =
+    preferredLeft + surfaceRectangle.width <= window.innerWidth - viewportPadding
+      ? preferredLeft
+      : Math.min(
+          Math.max(fallbackLeft, viewportPadding),
+          Math.max(
+            window.innerWidth - surfaceRectangle.width - viewportPadding,
+            viewportPadding,
+          ),
+        )
+  const top = Math.min(
+    Math.max(parentRectangle.top + 32 + offset, viewportPadding),
+    Math.max(
+      window.innerHeight - surfaceRectangle.height - viewportPadding,
+      viewportPadding,
+    ),
+  )
+
+  surface.style.left = `${left}px`
+  surface.style.top = `${top}px`
 }
 
 function makeDraggable(element, handle) {
@@ -106,6 +140,81 @@ function makeDraggable(element, handle) {
   handle.addEventListener('pointercancel', finishDragging)
 }
 
+function createComposer(placeholder, onSubmit) {
+  const form = document.createElement('form')
+  form.className = 'context-explainer-composer'
+
+  const input = document.createElement('textarea')
+  input.rows = 1
+  input.placeholder = placeholder
+  input.setAttribute('aria-label', placeholder)
+
+  const sendButton = document.createElement('button')
+  sendButton.type = 'submit'
+  sendButton.className = 'context-explainer-send'
+  sendButton.setAttribute('aria-label', 'Send')
+  sendButton.textContent = '↑'
+
+  let locked = false
+
+  function resizeInput() {
+    input.style.height = '0px'
+    const nextHeight = Math.min(input.scrollHeight, MAX_INPUT_HEIGHT)
+    input.style.height = `${Math.max(nextHeight, 22)}px`
+    input.style.overflowY =
+      input.scrollHeight > MAX_INPUT_HEIGHT ? 'auto' : 'hidden'
+  }
+
+  function syncSendButton() {
+    const hasText = input.value.trim() !== ''
+    sendButton.disabled = locked || !hasText
+    sendButton.classList.toggle('context-explainer-send-ready', hasText && !locked)
+  }
+
+  function submitMessage() {
+    const question = input.value.trim()
+
+    if (question === '' || locked) {
+      return
+    }
+
+    onSubmit(question)
+    input.value = ''
+    resizeInput()
+    syncSendButton()
+  }
+
+  input.addEventListener('input', () => {
+    resizeInput()
+    syncSendButton()
+  })
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      form.requestSubmit()
+    }
+  })
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault()
+    submitMessage()
+  })
+
+  form.append(input, sendButton)
+  resizeInput()
+  syncSendButton()
+
+  return {
+    element: form,
+    input,
+    setLocked(isLocked) {
+      locked = isLocked
+      syncSendButton()
+    },
+  }
+}
+
 async function requestExplanation(action, selectedText, question = '') {
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -127,7 +236,6 @@ async function requestExplanation(action, selectedText, question = '') {
 
   return data.answer
 }
-//Injecting to chorme
 
 function removeTriggerButton() {
   document.getElementById(TRIGGER_BUTTON_ID)?.remove()
@@ -135,6 +243,9 @@ function removeTriggerButton() {
 
 function removeExplanationBox() {
   document.getElementById(EXPLANATION_BOX_ID)?.remove()
+  document.querySelectorAll(`.${FOLLOW_UP_CLASS}`).forEach((surface) => {
+    surface.remove()
+  })
 }
 
 function isExtensionElement(target) {
@@ -143,8 +254,60 @@ function isExtensionElement(target) {
   }
 
   return Boolean(
-    target.closest(`#${TRIGGER_BUTTON_ID}, #${EXPLANATION_BOX_ID}`),
+    target.closest(
+      `#${TRIGGER_BUTTON_ID}, #${EXPLANATION_BOX_ID}, .${FOLLOW_UP_CLASS}`,
+    ),
   )
+}
+
+function createFollowUpSurface(selectedText, parentBox) {
+  const surfaceIndex = document.querySelectorAll(`.${FOLLOW_UP_CLASS}`).length + 1
+  const surface = document.createElement('section')
+  surface.className = FOLLOW_UP_CLASS
+  applyActiveTheme(surface)
+  surface.setAttribute('aria-label', `Follow-up question ${surfaceIndex}`)
+
+  const header = document.createElement('header')
+
+  const heading = document.createElement('strong')
+  heading.textContent = `Follow-up ${surfaceIndex}`
+
+  const closeButton = document.createElement('button')
+  closeButton.type = 'button'
+  closeButton.className = 'context-explainer-close'
+  closeButton.setAttribute('aria-label', 'Close follow-up')
+  closeButton.textContent = '×'
+  closeButton.addEventListener('click', () => surface.remove())
+
+  header.append(heading, closeButton)
+
+  const answer = document.createElement('div')
+  answer.className = 'context-explainer-follow-up-answer'
+  answer.setAttribute('aria-live', 'polite')
+
+  let composer
+  composer = createComposer('Ask a follow-up…', async (question) => {
+    composer.setLocked(true)
+    answer.textContent = 'Thinking…'
+
+    try {
+      answer.textContent = await requestExplanation(
+        'question',
+        selectedText,
+        question,
+      )
+    } catch (error) {
+      answer.textContent = `Error: ${error.message}`
+    } finally {
+      composer.setLocked(false)
+    }
+  })
+
+  surface.append(header, answer, composer.element)
+  document.body.appendChild(surface)
+  positionFollowUp(surface, parentBox, surfaceIndex)
+  makeDraggable(surface, header)
+  composer.input.focus()
 }
 
 function createExplanationBox(selectedText, selectionRectangle) {
@@ -154,7 +317,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
   box.id = EXPLANATION_BOX_ID
   applyActiveTheme(box)
   box.setAttribute('role', 'dialog')
-  box.setAttribute('aria-label', 'Context lookup')
+  box.setAttribute('aria-label', 'Context explorer')
 
   const header = document.createElement('header')
 
@@ -166,7 +329,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
   materialIcon.setAttribute('aria-hidden', 'true')
 
   const heading = document.createElement('strong')
-  heading.textContent = 'Look Up'
+  heading.textContent = 'Explore'
 
   titleGroup.append(materialIcon, heading)
 
@@ -186,8 +349,11 @@ function createExplanationBox(selectedText, selectionRectangle) {
   themeButton.textContent = activeUi.toUpperCase()
   themeButton.setAttribute('aria-label', 'Switch interface style')
   themeButton.addEventListener('click', () => {
-    activeUi = activeUi === 'ui1' ? 'ui2' : 'ui1'
+    const activeIndex = UI_ORDER.indexOf(activeUi)
+    const nextIndex = (activeIndex + 1) % UI_ORDER.length
+    activeUi = UI_ORDER[nextIndex]
     applyActiveTheme(box)
+    document.querySelectorAll(`.${FOLLOW_UP_CLASS}`).forEach(applyActiveTheme)
     themeButton.textContent = activeUi.toUpperCase()
   })
 
@@ -209,27 +375,24 @@ function createExplanationBox(selectedText, selectionRectangle) {
   preview.textContent = selectedText
   selectionDetails.append(selectionSummary, preview)
 
+  const actionBar = document.createElement('div')
+  actionBar.className = 'context-explainer-action-bar'
+
   const summarizeButton = document.createElement('button')
   summarizeButton.type = 'button'
-  summarizeButton.className = 'context-explainer-primary'
-  summarizeButton.textContent = 'Summarize'
+  summarizeButton.className = 'context-explainer-icon-control'
+  summarizeButton.setAttribute('aria-label', 'Summarize')
+  summarizeButton.dataset.tooltip = 'Summarize'
+  summarizeButton.textContent = '✦'
 
-  const questionForm = document.createElement('form')
+  const followUpButton = document.createElement('button')
+  followUpButton.type = 'button'
+  followUpButton.className = 'context-explainer-icon-control'
+  followUpButton.setAttribute('aria-label', 'Add follow-up')
+  followUpButton.dataset.tooltip = 'Add follow-up'
+  followUpButton.textContent = '+'
 
-  const questionLabel = document.createElement('label')
-  questionLabel.className = 'context-explainer-label'
-  questionLabel.htmlFor = 'context-explainer-question'
-  questionLabel.textContent = 'Ask about this text'
-
-  const questionInput = document.createElement('textarea')
-  questionInput.id = 'context-explainer-question'
-  questionInput.rows = 3
-  questionInput.placeholder = 'What does this mean?'
-
-  const askButton = document.createElement('button')
-  askButton.type = 'submit'
-  askButton.className = 'context-explainer-primary'
-  askButton.textContent = 'Ask'
+  actionBar.append(summarizeButton, followUpButton)
 
   const conversation = document.createElement('div')
   conversation.className = 'context-explainer-conversation'
@@ -259,9 +422,11 @@ function createExplanationBox(selectedText, selectionRectangle) {
     return messageText
   }
 
+  let composer
+
   async function showAnswer(action, question = '') {
     summarizeButton.disabled = true
-    askButton.disabled = true
+    composer.setLocked(true)
 
     const userMessage =
       action === 'summarize' ? 'Summarize this selection.' : question
@@ -275,7 +440,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
       answerMessage.textContent = `Error: ${error.message}`
     } finally {
       summarizeButton.disabled = false
-      askButton.disabled = false
+      composer.setLocked(false)
     }
   }
 
@@ -283,27 +448,20 @@ function createExplanationBox(selectedText, selectionRectangle) {
     showAnswer('summarize')
   })
 
-  questionForm.addEventListener('submit', (event) => {
-    event.preventDefault()
-
-    const question = questionInput.value.trim()
-
-    if (question === '') {
-      appendMessage('assistant', 'Enter a question first.')
-      return
-    }
-
-    showAnswer('question', question)
-    questionInput.value = ''
+  followUpButton.addEventListener('click', () => {
+    createFollowUpSurface(selectedText, box)
   })
 
-  questionForm.append(questionLabel, questionInput, askButton)
+  composer = createComposer('Ask about this text…', (question) => {
+    showAnswer('question', question)
+  })
+
   box.append(
     header,
     selectionDetails,
-    summarizeButton,
+    actionBar,
     conversation,
-    questionForm,
+    composer.element,
   )
   document.body.appendChild(box)
   positionNearSelection(box, selectionRectangle)
@@ -315,7 +473,7 @@ function createTriggerButton(selectedText, selectionRectangle) {
   button.id = TRIGGER_BUTTON_ID
   applyActiveTheme(button)
   button.type = 'button'
-  button.textContent = 'Look Up'
+  button.textContent = 'Explore'
 
   button.addEventListener('mousedown', (event) => {
     event.preventDefault()

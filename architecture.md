@@ -34,8 +34,9 @@ The supplied learning plan suggests a possible Chrome extension built with:
 - an LLM API
 
 The first version deliberately uses plain JavaScript and CSS. A dependency-free
-Node.js HTTP backend now provides the initial API boundary. React, TypeScript,
-and an LLM API remain possible later additions rather than current dependencies.
+Node.js HTTP backend provides the API boundary and calls Gemini's GenerateContent API.
+React and TypeScript remain possible later additions rather than current
+dependencies.
 
 ## Possible components
 
@@ -60,17 +61,22 @@ for each choice and meaningful alternatives considered.
 - Implemented: `manifest.json` loads `content.js` and `content.css` on webpages.
 - Implemented: a `mouseup` listener reads and saves selected text, then places an
   **Ask AI** trigger beside the selection.
-- Implemented: clicking the trigger opens a persistent placeholder window using
+- Implemented: clicking the trigger opens a persistent floating window using
   the saved text. The window can be closed with its button or the Escape key.
-- Implemented: the window previews the selected text and provides a Summarize
-  button, a question form, validation, and a response area. The actions currently
-  produce local placeholder responses; no AI or backend request is made yet.
+- Implemented: the window previews the selected text and provides summary and
+  question controls, validation, and a chat-style response area.
 - Implemented: events originating inside extension UI are ignored by the
   webpage-level selection listener so users can interact with the UI safely.
 - Implemented: `backend/server.js` exposes `POST /api/explain`, parses JSON,
-  validates summary and question requests, and returns placeholder JSON answers.
+  validates and limits summary and question requests, calls Gemini's
+  GenerateContent API, and returns the generated answer as JSON.
 - Implemented: the local backend listens on port 3000 and permits development
   requests from the extension through CORS response headers.
+- Implemented: the backend loads `GEMINI_API_KEY` and optional `GEMINI_MODEL`
+  from a repository-root `.env` file. The default model is
+  `gemini-3.5-flash`.
+- Implemented: missing configuration, invalid input, provider failures, empty
+  provider answers, and unexpected server failures return distinct safe errors.
 - Implemented: the floating UI sends summary and question requests to the local
   backend with `fetch`, then displays returned answers or request errors.
 - Implemented: action buttons are disabled while a request is running to prevent
@@ -109,6 +115,20 @@ for each choice and meaningful alternatives considered.
   Dragging is clamped to the viewport so the window cannot be lost off-screen.
 - Refined: UI2's primary material is approximately 30% darker and 30% more
   transparent, with backdrop brightness maintaining its near-black character.
+- Implemented: UI3 (`classic-glass`) restores the original balanced grey-glass
+  direction with medium-light graphite material, stronger blur, dark text, and
+  conventional translucent controls. The header switch cycles through all three
+  independent UI designs.
+- Implemented: the main question composer begins as a single line, grows with
+  multiline content to a 112px maximum, and then scrolls internally. Enter sends
+  while Shift+Enter inserts a newline; the circular arrow reflects whether text
+  is ready to send.
+- Implemented: the text Summarize control is replaced by a compact Sparkles icon
+  with a tooltip.
+- Implemented: the `+` control creates draggable, theme-aware follow-up glass
+  surfaces that reuse the existing question request. Multiple surfaces use
+  controlled offsets, remain inside the viewport, and preserve the original
+  response behind them.
 - Implemented: selected source text is collapsed into a `Selected text · 1`
   annotation that can be expanded when the user wants to review the source.
 - Implemented: summary requests, questions, answers, loading states, and errors
@@ -119,7 +139,7 @@ for each choice and meaningful alternatives considered.
 
 ## Data flow
 
-Proposed initial flow:
+Implemented MVP flow:
 
 1. The content script observes the user's text selection.
 2. It opens a floating window near the selection.
@@ -128,4 +148,36 @@ Proposed initial flow:
 5. The backend calls the AI service without exposing secret API keys.
 6. The answer returns to the floating window.
 
-This flow is a design proposal until implemented and tested.
+The local boundary and error paths are implemented. A successful live model
+response still requires a valid backend API key and network access.
+
+## Confirmed MVP AI architecture
+
+The MVP will use one application-owned Gemini API credential on the backend.
+Bring Your Own Key may be added later, but it is explicitly outside the MVP.
+
+- Users will authenticate with this application; that identity is separate from
+  a Google or Gemini account.
+- The extension sends authenticated requests to our backend and never calls an
+  AI provider with a long-lived secret directly.
+- The backend reads the single application API key from `GEMINI_API_KEY` in its
+  environment. `.env` files are excluded from Git and only `.env.example` is
+  committed.
+- The backend will record usage by application user so limits and billing can be
+  added without changing the extension-to-backend contract.
+- The application owns conversation state as a tree of nodes. Each node stores a
+  parent node ID, question, answer, selected source, and optional provider
+  response ID.
+- A follow-up surface creates a child node, not a separate provider-side chat.
+- For each AI request, the backend constructs the single linear ancestor path
+  from the root to that node. This allows the UI to branch while each model call
+  still receives an ordinary linear conversation.
+- Provider response chaining may be used as an optimization, but the application
+  database remains the source of truth so branching is not coupled to one
+  provider's conversation model.
+
+### Deferred BYOK direction
+
+If Bring Your Own Key is introduced later, provider credentials must be
+encrypted on the backend and associated with the application user. The raw key
+must never be stored by or returned to the Chrome extension.
