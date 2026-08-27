@@ -4,6 +4,14 @@
   "private": true,
   "description": "A contextual AI explanation Chrome extension.",
   "scripts": {
+    "build": "node scripts/build.js",
+    "preview": "node preview/server.js",
     "server": "node backend/server.js"
+  },
+  "dependencies": {
+    "simple-liquid-glass": "^4.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
   }
 }

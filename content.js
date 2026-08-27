@@ -1,6 +1,7 @@
 const TRIGGER_BUTTON_ID = 'context-explainer-trigger'
 const EXPLANATION_BOX_ID = 'context-explainer-box'
 const FOLLOW_UP_CLASS = 'context-explainer-follow-up'
+const LIQUID_GLASS_TAG = 'context-explainer-liquid-glass'
 const API_URL = 'http://localhost:3000/api/explain'
 const MAX_INPUT_HEIGHT = 112
 const UI_THEMES = {
@@ -13,6 +14,45 @@ let activeUi = 'ui2'
 
 function applyActiveTheme(element) {
   element.dataset.contextTheme = UI_THEMES[activeUi]
+
+  if (element.localName === LIQUID_GLASS_TAG) {
+    configureLiquidGlass(element)
+  }
+}
+
+function configureLiquidGlass(element) {
+  const usesLibraryGlass = activeUi === 'ui1'
+  const attributes = usesLibraryGlass
+    ? {
+        radius: '22',
+        frost: '0.22',
+        blur: '24',
+        saturation: '125',
+        displace: '2',
+        scale: '42',
+        lightness: '48',
+        alpha: '0.5',
+        lens: 'rim',
+        'lens-strength': '0.5',
+        'border-color': 'rgba(255, 255, 255, 0.28)',
+      }
+    : {
+      radius: '22',
+      frost: '0',
+      blur: '0',
+      saturation: '100',
+      displace: '0',
+      scale: '0',
+      lightness: '50',
+      alpha: '0',
+      lens: 'rim',
+      'lens-strength': '0',
+      'border-color': 'rgba(255, 255, 255, 0)',
+    }
+
+  for (const [name, value] of Object.entries(attributes)) {
+    element.setAttribute(name, value)
+  }
 }
 
 function positionNearSelection(element, selectionRectangle, gap = 12) {
@@ -68,12 +108,12 @@ function positionFollowUp(surface, parentBox, surfaceIndex) {
     preferredLeft + surfaceRectangle.width <= window.innerWidth - viewportPadding
       ? preferredLeft
       : Math.min(
-          Math.max(fallbackLeft, viewportPadding),
-          Math.max(
-            window.innerWidth - surfaceRectangle.width - viewportPadding,
-            viewportPadding,
-          ),
-        )
+        Math.max(fallbackLeft, viewportPadding),
+        Math.max(
+          window.innerWidth - surfaceRectangle.width - viewportPadding,
+          viewportPadding,
+        ),
+      )
   const top = Math.min(
     Math.max(parentRectangle.top + 32 + offset, viewportPadding),
     Math.max(
@@ -215,7 +255,7 @@ function createComposer(placeholder, onSubmit) {
   }
 }
 
-async function requestExplanation(action, selectedText, question = '') {
+async function requestExplanation(action, selectedText, question = '', history = []) {
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: {
@@ -225,6 +265,7 @@ async function requestExplanation(action, selectedText, question = '') {
       action,
       selectedText,
       question,
+      history,
     }),
   })
 
@@ -313,7 +354,9 @@ function createFollowUpSurface(selectedText, parentBox) {
 function createExplanationBox(selectedText, selectionRectangle) {
   removeExplanationBox()
 
-  const box = document.createElement('section')
+  const conversationHistory = []
+
+  const box = document.createElement(LIQUID_GLASS_TAG)
   box.id = EXPLANATION_BOX_ID
   applyActiveTheme(box)
   box.setAttribute('role', 'dialog')
@@ -434,8 +477,17 @@ function createExplanationBox(selectedText, selectionRectangle) {
     const answerMessage = appendMessage('assistant', 'Thinking…')
 
     try {
-      const answer = await requestExplanation(action, selectedText, question)
+      const answer = await requestExplanation(
+        action,
+        selectedText,
+        question,
+        conversationHistory,
+      )
       answerMessage.textContent = answer
+      conversationHistory.push(
+        { role: 'user', text: userMessage },
+        { role: 'model', text: answer },
+      )
     } catch (error) {
       answerMessage.textContent = `Error: ${error.message}`
     } finally {

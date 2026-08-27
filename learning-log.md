@@ -26,6 +26,30 @@ explained.
 - One small, practical follow-up
 -->
 
+## 2026-08-25 — Conversation history sequencing
+
+### Practiced or demonstrated
+
+- Distinguished the newest question from the earlier conversation history.
+- Reasoned that a successful question and answer should be saved after the AI
+  response returns.
+
+### Evidence
+
+- Explained that the newest question travels with the request separately and
+  that the completed exchange belongs in history at the end of execution.
+
+### Still unclear
+
+- How arrays store ordered message objects and how Gemini maps those objects to
+  `user` and `model` roles.
+- How separate follow-up surfaces will copy and branch conversation history.
+
+### Next exercise
+
+- Inspect one `conversationHistory.push()` call and identify the two objects
+  added after a successful answer.
+
 ## 2026-08-22 — Backend connection checkpoint
 
 ### Project status

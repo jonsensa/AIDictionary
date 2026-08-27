@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Explorer UI Playground</title>
+    <link rel="stylesheet" href="/content.css">
+    <link rel="stylesheet" href="/preview/preview.css">
+  </head>
+  <body>
+    <main class="preview-page">
+      <p class="preview-eyebrow">AIDictionary · UI playground</p>
+      <h1>Read without leaving the page.</h1>
+      <p class="preview-copy">
+        Select a passage, explore its meaning, and keep related thoughts close
+        to their original context. This textured background makes transparency
+        and refraction easy to judge.
+      </p>
+      <div class="preview-grid" aria-hidden="true"></div>
+    </main>
+
+    <aside class="preview-controls" aria-label="Glass controls">
+      <div class="preview-theme-buttons">
+        <button type="button" data-theme="soft-glass">UI1</button>
+        <button type="button" data-theme="dark-utility">UI2</button>
+        <button type="button" data-theme="classic-glass">UI3</button>
+      </div>
+      <label>Surface opacity <output id="opacity-output">38%</output>
+        <input id="opacity" type="range" min="0" max="0.5" step="0.01" value="0.38">
+      </label>
+      <label>Frost <output id="frost-output">22%</output>
+        <input id="frost" type="range" min="0" max="0.5" step="0.01" value="0.22">
+      </label>
+      <label>Refraction <output id="scale-output">42</output>
+        <input id="scale" type="range" min="0" max="400" step="1" value="42">
+      </label>
+    </aside>
+
+    <context-explainer-liquid-glass
+      id="context-explainer-box"
+      data-context-theme="soft-glass"
+      radius="22"
+      frost="0.22"
+      blur="24"
+      saturation="125"
+      displace="2"
+      scale="42"
+      lightness="48"
+      alpha="0.5"
+      lens="rim"
+      lens-strength="0.5"
+      border-color="rgba(255, 255, 255, 0.28)"
+      role="dialog"
+      aria-label="Context explorer preview"
+    >
+      <header>
+        <div class="context-explainer-title-group">
+          <span class="context-explainer-material-icon" aria-hidden="true"></span>
+          <strong>Explore</strong>
+        </div>
+        <div class="context-explainer-header-actions">
+          <button class="context-explainer-theme-switch" type="button">UI1</button>
+          <button class="context-explainer-close" type="button" aria-label="Close">×</button>
+        </div>
+      </header>
+
+      <details class="context-explainer-selection">
+        <summary>Selected text <span>1</span></summary>
+        <p class="context-explainer-preview">Learning works best when ideas are connected to something meaningful.</p>
+      </details>
+
+      <div class="context-explainer-action-bar">
+        <button class="context-explainer-icon-control" type="button" data-tooltip="Summarize" aria-label="Summarize">✦</button>
+        <button class="context-explainer-icon-control" type="button" data-tooltip="Add follow-up" aria-label="Add follow-up">+</button>
+      </div>
+
+      <div class="context-explainer-conversation">
+        <article class="context-explainer-message context-explainer-user">
+          <span>You</span><p>Explain this in simpler language.</p>
+        </article>
+        <article class="context-explainer-message context-explainer-assistant">
+          <span>Explore</span><p>You understand ideas more easily when they connect to a real example or goal.</p>
+        </article>
+      </div>
+
+      <form class="context-explainer-composer">
+        <textarea rows="1" placeholder="Ask about this selection…" aria-label="Ask about this selection"></textarea>
+        <button class="context-explainer-send" type="button" aria-label="Send">↑</button>
+      </form>
+    </context-explainer-liquid-glass>
+
+    <script src="/vendor/liquid-glass.js"></script>
+    <script src="/preview/preview.js"></script>
+  </body>
+</html>

@@ -33,10 +33,10 @@ The supplied learning plan suggests a possible Chrome extension built with:
 - a backend API
 - an LLM API
 
-The first version deliberately uses plain JavaScript and CSS. A dependency-free
-Node.js HTTP backend provides the API boundary and calls Gemini's GenerateContent API.
-React and TypeScript remain possible later additions rather than current
-dependencies.
+The first version deliberately uses plain JavaScript and CSS. A Node.js HTTP
+backend provides the API boundary and calls Gemini's GenerateContent API. React
+and TypeScript remain possible later additions rather than current dependencies.
+The extension now has a small npm build step for its liquid-glass visual layer.
 
 ## Possible components
 
@@ -77,6 +77,19 @@ for each choice and meaningful alternatives considered.
   `gemini-3.5-flash`.
 - Implemented: missing configuration, invalid input, provider failures, empty
   provider answers, and unexpected server failures return distinct safe errors.
+- Implemented: each request accepts up to 100,000 selected-text characters and
+  10,000 question characters. Gemini may generate up to 4,096 output tokens per
+  answer; the overall JSON request body is capped at 500,000 characters.
+- Implemented: the main popup keeps successful user/model turns in an in-memory
+  `conversationHistory` array and sends that history with each new request. The
+  backend validates at most 40 history messages, converts them to Gemini content
+  entries, and places the newest question after the earlier turns.
+- Current limitation: conversation history exists only while the popup remains
+  open. It is not persisted to a database or shared with `+` follow-up surfaces.
+- Implemented: selected text is optional starting context for questions rather
+  than an information boundary. The study assistant may answer loosely related
+  or unrelated questions with general model knowledge while still using the
+  selection when relevant.
 - Implemented: the floating UI sends summary and question requests to the local
   backend with `fetch`, then displays returned answers or request errors.
 - Implemented: action buttons are disabled while a request is running to prevent
@@ -104,12 +117,12 @@ for each choice and meaningful alternatives considered.
 - Refined: UI1 now favors environmental visibility over material opacity. A
   brightness-adjusted backdrop keeps light text readable while the page remains
   recognizable through the glass.
-- Implemented: UI1 simulates optical edge refraction with a non-uniform masked
-  rim, brighter upper corners, faint inner highlights, and opposing edge shade.
-  This is a lightweight CSS illusion rather than shader-based distortion.
-- Refined: UI1 uses only a 2% near-black material tint, making its base surface
-  98% transparent. Its darker appearance comes from a 30% backdrop-brightness
-  filter, not from an opaque overlay.
+- Refined after visual testing: UI1 uses a 38% near-black surface, 22% frost,
+  24px blur, and a restrained refraction scale of 42. Lower displacement alpha
+  and lens strength prevent background text from appearing duplicated while
+  retaining a visible liquid-glass rim.
+- Refined: a 16px host backdrop blur sits beneath the library refraction layer
+  so readable webpage text does not visually compete with the popup content.
 - Implemented: the lookup window remains fixed relative to the viewport while
   the webpage scrolls and can be dragged by its header with mouse, pen, or touch.
   Dragging is clamped to the viewport so the window cannot be lost off-screen.
@@ -119,6 +132,25 @@ for each choice and meaningful alternatives considered.
   direction with medium-light graphite material, stronger blur, dark text, and
   conventional translucent controls. The header switch cycles through all three
   independent UI designs.
+- Installed: `simple-liquid-glass` supplies a framework-agnostic
+  `<liquid-glass>` web component, and `esbuild` bundles that component locally
+  into `vendor/liquid-glass.js`. The dependency is installed without React peer
+  packages because this extension uses the vanilla web-component entry point.
+- Confirmed: the library bundle is local rather than CDN-hosted so the extension
+  does not depend on remotely executed JavaScript.
+- Implemented: the manifest loads the local liquid-glass bundle before the
+  content script, and the main popup is a namespaced
+  `<context-explainer-liquid-glass>` web component. UI1 enables a rim lens with
+  SVG displacement refraction; UI2 and UI3 reduce the library material to zero
+  and continue using their existing CSS surfaces.
+- Confirmed: UI1 has one visual pipeline. The liquid-glass web component owns
+  optical rim refraction, while the UI1 CSS block owns only surface tint,
+  backdrop softening, layout, typography, and controls. The previous CSS
+  pseudo-element refraction simulation has been removed.
+- Implemented: `npm run preview` starts a local UI playground on port 4173. It
+  reuses the extension stylesheet and liquid-glass bundle, reloads when visual
+  source files change, and exposes opacity, frost, and refraction controls for
+  quick visual tuning outside the extension interaction flow.
 - Implemented: the main question composer begins as a single line, grows with
   multiline content to a 112px maximum, and then scrolls internally. Enter sends
   while Shift+Enter inserts a newline; the circular arrow reflects whether text
