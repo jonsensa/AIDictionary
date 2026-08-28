@@ -1,9 +1,13 @@
 const TRIGGER_BUTTON_ID = 'context-explainer-trigger'
 const EXPLANATION_BOX_ID = 'context-explainer-box'
 const FOLLOW_UP_CLASS = 'context-explainer-follow-up'
+const STUDY_SHELF_ID = 'context-explainer-study-shelf'
+const SAVE_EXCERPT_ID = 'context-explainer-save-excerpt'
 const LIQUID_GLASS_TAG = 'context-explainer-liquid-glass'
 const API_URL = 'http://localhost:3000/api/explain'
 const MAX_INPUT_HEIGHT = 112
+const SAVED_INSIGHTS_KEY = 'contextExplainerSavedInsights'
+const MAX_SAVED_INSIGHTS = 200
 const UI_THEMES = {
   ui1: 'soft-glass',
   ui2: 'dark-utility',
@@ -263,12 +267,68 @@ function createComposer(placeholder, onSubmit) {
   return {
     element: form,
     input,
+    setValue(value) {
+      input.value = value
+      resizeInput()
+      syncSendButton()
+      input.focus()
+    },
     setLocked(isLocked, onCancel = null) {
       locked = isLocked
       cancelRequest = isLocked ? onCancel : null
       syncSendButton()
     },
   }
+}
+
+function readSavedInsights() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get([SAVED_INSIGHTS_KEY], (result) => {
+      const storageError = chrome.runtime.lastError
+      if (storageError) {
+        reject(new Error(storageError.message))
+        return
+      }
+
+      resolve(Array.isArray(result[SAVED_INSIGHTS_KEY]) ? result[SAVED_INSIGHTS_KEY] : [])
+    })
+  })
+}
+
+function writeSavedInsights(insights) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ [SAVED_INSIGHTS_KEY]: insights }, () => {
+      const storageError = chrome.runtime.lastError
+      if (storageError) {
+        reject(new Error(storageError.message))
+        return
+      }
+
+      resolve()
+    })
+  })
+}
+
+async function saveInsight({ kind, text, question, sourceText }) {
+  const insights = await readSavedInsights()
+  const insight = {
+    id: crypto.randomUUID(),
+    kind,
+    text: text.trim(),
+    question: question.trim(),
+    sourceText: sourceText.trim(),
+    pageTitle: document.title,
+    pageUrl: window.location.href,
+    createdAt: new Date().toISOString(),
+  }
+
+  await writeSavedInsights([insight, ...insights].slice(0, MAX_SAVED_INSIGHTS))
+  return insight
+}
+
+async function deleteSavedInsight(insightId) {
+  const insights = await readSavedInsights()
+  await writeSavedInsights(insights.filter((insight) => insight.id !== insightId))
 }
 
 async function requestExplanation(
@@ -460,6 +520,8 @@ function removeTriggerButton() {
 
 function removeExplanationBox() {
   document.getElementById(EXPLANATION_BOX_ID)?.remove()
+  document.getElementById(STUDY_SHELF_ID)?.remove()
+  document.getElementById(SAVE_EXCERPT_ID)?.remove()
   document.querySelectorAll(`.${FOLLOW_UP_CLASS}`).forEach((surface) => {
     surface.remove()
   })
@@ -472,7 +534,7 @@ function isExtensionElement(target) {
 
   return Boolean(
     target.closest(
-      `#${TRIGGER_BUTTON_ID}, #${EXPLANATION_BOX_ID}, .${FOLLOW_UP_CLASS}`,
+      `#${TRIGGER_BUTTON_ID}, #${EXPLANATION_BOX_ID}, #${STUDY_SHELF_ID}, #${SAVE_EXCERPT_ID}, .${FOLLOW_UP_CLASS}`,
     ),
   )
 }
@@ -579,10 +641,20 @@ function createExplanationBox(selectedText, selectionRectangle) {
     activeUi = UI_ORDER[nextIndex]
     applyActiveTheme(box)
     document.querySelectorAll(`.${FOLLOW_UP_CLASS}`).forEach(applyActiveTheme)
+    const studyShelf = document.getElementById(STUDY_SHELF_ID)
+    if (studyShelf) {
+      applyActiveTheme(studyShelf)
+    }
     themeButton.textContent = activeUi.toUpperCase()
   })
 
-  headerActions.append(themeButton, closeButton)
+  const shelfButton = document.createElement('button')
+  shelfButton.type = 'button'
+  shelfButton.className = 'context-explainer-shelf-button'
+  shelfButton.setAttribute('aria-label', 'Open Study Shelf')
+  shelfButton.dataset.tooltip = 'Study Shelf'
+
+  headerActions.append(shelfButton, themeButton, closeButton)
   header.append(titleGroup, headerActions)
 
   const selectionDetails = document.createElement('details')
@@ -628,6 +700,256 @@ function createExplanationBox(selectedText, selectionRectangle) {
   emptyConversation.textContent = 'Summarize the selection or ask a question.'
   conversation.appendChild(emptyConversation)
 
+  let composer
+
+  async function copyInsightText(button, text) {
+    try {
+      await navigator.clipboard.writeText(text)
+      button.dataset.tooltip = 'Copied'
+    } catch {
+      button.dataset.tooltip = 'Copy failed'
+    }
+
+    window.setTimeout(() => {
+      button.dataset.tooltip = 'Copy'
+    }, 1200)
+  }
+
+  function createShelfCard(insight, shelfList, countLabel) {
+    const card = document.createElement('article')
+    card.className = 'context-explainer-shelf-card'
+
+    const cardHeader = document.createElement('div')
+    cardHeader.className = 'context-explainer-shelf-card-header'
+
+    const kind = document.createElement('span')
+    kind.textContent = insight.kind === 'excerpt' ? 'Highlight' : 'Answer'
+
+    const date = document.createElement('time')
+    date.dateTime = insight.createdAt
+    date.textContent = new Date(insight.createdAt).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    })
+
+    cardHeader.append(kind, date)
+
+    const savedText = document.createElement('p')
+    savedText.className = 'context-explainer-shelf-text'
+    savedText.textContent = insight.text
+
+    const source = document.createElement('span')
+    source.className = 'context-explainer-shelf-source'
+    source.textContent = insight.pageTitle || 'Saved webpage'
+
+    const actions = document.createElement('div')
+    actions.className = 'context-explainer-shelf-actions'
+
+    const askButton = document.createElement('button')
+    askButton.type = 'button'
+    askButton.textContent = 'Ask'
+    askButton.setAttribute('aria-label', 'Ask about this insight')
+    askButton.addEventListener('click', () => {
+      composer.setValue(`Help me study this saved insight:\n\n${insight.text}`)
+    })
+
+    const copyButton = document.createElement('button')
+    copyButton.type = 'button'
+    copyButton.textContent = '⧉'
+    copyButton.setAttribute('aria-label', 'Copy insight')
+    copyButton.dataset.tooltip = 'Copy'
+    copyButton.addEventListener('click', () => copyInsightText(copyButton, insight.text))
+
+    const sourceButton = document.createElement('button')
+    sourceButton.type = 'button'
+    sourceButton.textContent = '↗'
+    sourceButton.setAttribute('aria-label', 'Open original webpage')
+    sourceButton.dataset.tooltip = 'Open source'
+    sourceButton.addEventListener('click', () => {
+      window.open(insight.pageUrl, '_blank', 'noopener,noreferrer')
+    })
+
+    const deleteButton = document.createElement('button')
+    deleteButton.type = 'button'
+    deleteButton.textContent = '×'
+    deleteButton.setAttribute('aria-label', 'Delete saved insight')
+    deleteButton.dataset.tooltip = 'Delete'
+    deleteButton.addEventListener('click', async () => {
+      await deleteSavedInsight(insight.id)
+      card.remove()
+      const remainingCount = shelfList.childElementCount
+      countLabel.textContent = String(remainingCount)
+
+      if (remainingCount === 0) {
+        const emptyShelf = document.createElement('p')
+        emptyShelf.className = 'context-explainer-shelf-empty'
+        emptyShelf.textContent = 'Saved answers and highlights will gather here.'
+        shelfList.appendChild(emptyShelf)
+      }
+    })
+
+    actions.append(askButton, copyButton, sourceButton, deleteButton)
+    card.append(cardHeader, savedText, source, actions)
+    return card
+  }
+
+  async function openStudyShelf() {
+    const existingShelf = document.getElementById(STUDY_SHELF_ID)
+
+    if (existingShelf) {
+      existingShelf.remove()
+      return
+    }
+
+    const shelf = document.createElement('section')
+    shelf.id = STUDY_SHELF_ID
+    applyActiveTheme(shelf)
+    shelf.setAttribute('aria-label', 'Study Shelf')
+
+    const shelfHeader = document.createElement('header')
+    const shelfTitleGroup = document.createElement('div')
+    shelfTitleGroup.className = 'context-explainer-shelf-title'
+
+    const shelfTitle = document.createElement('strong')
+    shelfTitle.textContent = 'Study Shelf'
+
+    const countLabel = document.createElement('span')
+    countLabel.textContent = '0'
+    shelfTitleGroup.append(shelfTitle, countLabel)
+
+    const shelfClose = document.createElement('button')
+    shelfClose.type = 'button'
+    shelfClose.className = 'context-explainer-close'
+    shelfClose.textContent = '×'
+    shelfClose.setAttribute('aria-label', 'Close Study Shelf')
+    shelfClose.addEventListener('click', () => shelf.remove())
+    shelfHeader.append(shelfTitleGroup, shelfClose)
+
+    const shelfList = document.createElement('div')
+    shelfList.className = 'context-explainer-shelf-list'
+    shelf.append(shelfHeader, shelfList)
+    document.body.appendChild(shelf)
+    positionFollowUp(shelf, box, 1)
+    makeDraggable(shelf, shelfHeader)
+
+    try {
+      const insights = await readSavedInsights()
+      countLabel.textContent = String(insights.length)
+
+      if (insights.length === 0) {
+        const emptyShelf = document.createElement('p')
+        emptyShelf.className = 'context-explainer-shelf-empty'
+        emptyShelf.textContent = 'Saved answers and highlights will gather here.'
+        shelfList.appendChild(emptyShelf)
+        return
+      }
+
+      insights.forEach((insight) => {
+        shelfList.appendChild(createShelfCard(insight, shelfList, countLabel))
+      })
+    } catch (error) {
+      shelfList.textContent = `Could not open saved insights: ${error.message}`
+    }
+  }
+
+  function showExcerptSavePill(excerpt, question, rectangle) {
+    document.getElementById(SAVE_EXCERPT_ID)?.remove()
+
+    const savePill = document.createElement('button')
+    savePill.id = SAVE_EXCERPT_ID
+    applyActiveTheme(savePill)
+    savePill.type = 'button'
+    savePill.textContent = 'Save insight'
+    savePill.addEventListener('mousedown', (event) => event.preventDefault())
+    savePill.addEventListener('click', async () => {
+      savePill.disabled = true
+
+      try {
+        await saveInsight({
+          kind: 'excerpt',
+          text: excerpt,
+          question,
+          sourceText: selectedText,
+        })
+        savePill.textContent = 'Saved ✓'
+        window.setTimeout(() => savePill.remove(), 700)
+      } catch (error) {
+        savePill.textContent = `Could not save: ${error.message}`
+      }
+    })
+
+    document.body.appendChild(savePill)
+    const pillWidth = 104
+    const left = Math.min(
+      Math.max(rectangle.left + rectangle.width / 2 - pillWidth / 2, 8),
+      window.innerWidth - pillWidth - 8,
+    )
+    const top = Math.max(rectangle.top - 38, 8)
+    savePill.style.left = `${left}px`
+    savePill.style.top = `${top}px`
+  }
+
+  function attachAnswerTools(message, answerText, question) {
+    const actions = document.createElement('div')
+    actions.className = 'context-explainer-answer-actions'
+
+    const saveButton = document.createElement('button')
+    saveButton.type = 'button'
+    saveButton.className = 'context-explainer-save-answer'
+    saveButton.setAttribute('aria-label', 'Save answer')
+    saveButton.dataset.tooltip = 'Save answer'
+    saveButton.addEventListener('click', async () => {
+      saveButton.disabled = true
+
+      try {
+        if (saveButton.dataset.insightId) {
+          await deleteSavedInsight(saveButton.dataset.insightId)
+          delete saveButton.dataset.insightId
+          saveButton.classList.remove('context-explainer-saved')
+          saveButton.dataset.tooltip = 'Save answer'
+        } else {
+          const insight = await saveInsight({
+            kind: 'answer',
+            text: answerText,
+            question,
+            sourceText: selectedText,
+          })
+          saveButton.dataset.insightId = insight.id
+          saveButton.classList.add('context-explainer-saved')
+          saveButton.dataset.tooltip = 'Saved'
+        }
+      } catch {
+        saveButton.dataset.tooltip = 'Save failed'
+      } finally {
+        saveButton.disabled = false
+      }
+    })
+
+    actions.appendChild(saveButton)
+    message.appendChild(actions)
+
+    message.addEventListener('mouseup', () => {
+      window.setTimeout(() => {
+        const selection = window.getSelection()
+        const excerpt = selection?.toString().trim() || ''
+
+        if (
+          excerpt === '' ||
+          !selection.rangeCount ||
+          !selection.anchorNode ||
+          !selection.focusNode ||
+          !message.contains(selection.anchorNode) ||
+          !message.contains(selection.focusNode)
+        ) {
+          return
+        }
+
+        const rectangle = selection.getRangeAt(0).getBoundingClientRect()
+        showExcerptSavePill(excerpt, question, rectangle)
+      })
+    })
+  }
+
   function appendMessage(role, text) {
     emptyConversation.remove()
 
@@ -644,10 +966,8 @@ function createExplanationBox(selectedText, selectionRectangle) {
     conversation.appendChild(message)
     conversation.scrollTop = conversation.scrollHeight
 
-    return messageText
+    return { message, messageText }
   }
-
-  let composer
 
   async function showAnswer(action, question = '') {
     const requestController = new AbortController()
@@ -657,7 +977,10 @@ function createExplanationBox(selectedText, selectionRectangle) {
     const userMessage =
       action === 'summarize' ? 'Summarize this selection.' : question
     appendMessage('user', userMessage)
-    const answerMessage = appendMessage('assistant', '')
+    const {
+      message: answerContainer,
+      messageText: answerMessage,
+    } = appendMessage('assistant', '')
     showThinkingIndicator(answerMessage)
 
     try {
@@ -674,6 +997,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
         { role: 'user', text: userMessage },
         { role: 'model', text: answer },
       )
+      attachAnswerTools(answerContainer, answer, userMessage)
     } catch (error) {
       answerMessage.classList.remove('context-explainer-thinking')
       answerMessage.removeAttribute('aria-label')
@@ -688,6 +1012,8 @@ function createExplanationBox(selectedText, selectionRectangle) {
   summarizeButton.addEventListener('click', () => {
     showAnswer('summarize')
   })
+
+  shelfButton.addEventListener('click', openStudyShelf)
 
   followUpButton.addEventListener('click', () => {
     createFollowUpSurface(selectedText, box)

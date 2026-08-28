@@ -183,6 +183,17 @@ for each choice and meaningful alternatives considered.
 - Implemented: while generating, the composer's arrow becomes a compact Stop
   control. Cancelling aborts the browser fetch, closes the backend stream, and
   aborts the upstream Gemini request without saving the partial turn to history.
+- Implemented on the saved-insights feature branch: completed answers can be
+  bookmarked, and selected excerpts within an answer expose a small **Save
+  insight** control. Saved items keep their question, selected source context,
+  webpage title, URL, and creation time.
+- Implemented on the saved-insights feature branch: saved items live locally in
+  `chrome.storage.local`, capped at 200 recent items. The backend and Gemini do
+  not receive a save request.
+- Implemented on the saved-insights feature branch: the header bookmark opens a
+  draggable, theme-aware **Study Shelf** beside the conversation. Shelf cards
+  can fill the composer for further study, copy their text, open the original
+  webpage, or be deleted.
 - Not yet decided: whether summarization starts automatically or requires an
   explicit click.
 - Not yet decided: whether React is necessary for the first version.

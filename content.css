@@ -137,6 +137,27 @@
   gap: 3px;
 }
 
+#context-explainer-box .context-explainer-shelf-button,
+#context-explainer-box .context-explainer-save-answer {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+#context-explainer-box .context-explainer-shelf-button::before,
+#context-explainer-box .context-explainer-save-answer::before {
+  width: 9px;
+  height: 12px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  content: "";
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+
+#context-explainer-box .context-explainer-save-answer.context-explainer-saved::before {
+  background: currentColor;
+}
+
 #context-explainer-box .context-explainer-material-icon {
   position: relative;
   width: 20px;
@@ -601,6 +622,115 @@
   border-left: 1px solid rgb(255 255 255 / 9%);
 }
 
+#context-explainer-box .context-explainer-answer-actions {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 22px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+#context-explainer-box .context-explainer-assistant:hover .context-explainer-answer-actions,
+#context-explainer-box .context-explainer-answer-actions:focus-within {
+  opacity: 1;
+}
+
+#context-explainer-box .context-explainer-save-answer {
+  width: 24px;
+  height: 22px;
+  color: rgb(247 247 249 / 42%);
+}
+
+#context-explainer-box .context-explainer-save-answer:hover,
+#context-explainer-box .context-explainer-save-answer.context-explainer-saved {
+  color: rgb(255 255 255 / 92%);
+}
+
+#context-explainer-save-excerpt {
+  position: fixed;
+  z-index: 2147483647;
+  min-width: 104px;
+  padding: 7px 11px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 999px;
+  background: rgb(12 12 14 / 80%);
+  color: rgb(250 250 252 / 90%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 28px rgb(0 0 0 / 30%);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  animation: context-explainer-trigger-in 160ms ease both;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+#context-explainer-study-shelf {
+  position: fixed;
+  z-index: 2147483647;
+  width: min(330px, calc(100vw - 16px));
+  max-height: min(470px, calc(100vh - 16px));
+  overflow: hidden;
+  padding: 15px;
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 19px;
+  background: rgb(10 10 12 / 78%);
+  color: rgb(244 244 247 / 82%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 24px 65px rgb(0 0 0 / 34%);
+  backdrop-filter: blur(22px) saturate(110%) brightness(0.72);
+  -webkit-backdrop-filter: blur(22px) saturate(110%) brightness(0.72);
+  animation: context-explainer-follow-up-in 210ms cubic-bezier(0.16, 0.82, 0.28, 1.04) both;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+#context-explainer-study-shelf header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  cursor: grab;
+  user-select: none;
+}
+
+#context-explainer-study-shelf header.context-explainer-dragging { cursor: grabbing; }
+
+#context-explainer-study-shelf button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+#context-explainer-study-shelf button:hover { background: rgb(255 255 255 / 8%); color: #fff; }
+#context-explainer-study-shelf .context-explainer-close { width: 25px; height: 25px; font-size: 17px; }
+
+.context-explainer-shelf-title,
+.context-explainer-shelf-card-header,
+.context-explainer-shelf-actions {
+  display: flex;
+  align-items: center;
+}
+
+.context-explainer-shelf-title { gap: 7px; }
+.context-explainer-shelf-title strong { color: rgb(255 255 255 / 90%); font-size: 13px; }
+.context-explainer-shelf-title span { padding: 1px 6px; border-radius: 999px; background: rgb(255 255 255 / 8%); color: rgb(255 255 255 / 50%); font-size: 9px; }
+.context-explainer-shelf-list { display: grid; gap: 8px; max-height: 405px; overflow-y: auto; scrollbar-width: thin; }
+.context-explainer-shelf-card { padding: 11px; border: 1px solid rgb(255 255 255 / 8%); border-radius: 13px; background: rgb(255 255 255 / 3%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%); }
+.context-explainer-shelf-card-header { justify-content: space-between; color: rgb(255 255 255 / 42%); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+.context-explainer-shelf-text { display: -webkit-box; margin: 7px 0 6px; overflow: hidden; color: rgb(255 255 255 / 82%); -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+.context-explainer-shelf-source { display: block; overflow: hidden; color: rgb(255 255 255 / 38%); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.context-explainer-shelf-actions { justify-content: flex-end; gap: 3px; margin-top: 8px; }
+#context-explainer-study-shelf .context-explainer-shelf-actions button { min-width: 25px; height: 24px; padding: 0 7px; color: rgb(255 255 255 / 54%); font-size: 10px; }
+#context-explainer-study-shelf .context-explainer-shelf-actions button:first-child { margin-right: auto; border: 1px solid rgb(255 255 255 / 8%); }
+.context-explainer-shelf-empty { margin: 24px 8px; color: rgb(255 255 255 / 42%); text-align: center; }
+
 .context-explainer-follow-up {
   position: fixed;
   z-index: 2147483647;
@@ -824,11 +954,23 @@
   color: rgb(255 255 255 / 72%);
 }
 
+#context-explainer-study-shelf[data-context-theme="soft-glass"] {
+  border-color: rgb(255 255 255 / 18%);
+  background: rgb(8 8 9 / 38%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%), 0 28px 72px rgb(25 28 30 / 26%);
+  backdrop-filter: blur(20px) saturate(120%) brightness(0.7);
+  -webkit-backdrop-filter: blur(20px) saturate(120%) brightness(0.7);
+}
+
 /* UI3: UI2's utility styling with a fully transparent outer surface. */
 
 #context-explainer-trigger[data-context-theme="transparent-utility"],
 #context-explainer-box[data-context-theme="transparent-utility"],
 .context-explainer-follow-up[data-context-theme="transparent-utility"] {
+  background: transparent;
+}
+
+#context-explainer-study-shelf[data-context-theme="transparent-utility"] {
   background: transparent;
 }
 
