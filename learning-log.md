@@ -26,6 +26,30 @@ explained.
 - One small, practical follow-up
 -->
 
+## 2026-08-28 — Pending requests and progressive answer reveal
+
+### Practiced or demonstrated
+
+- Distinguished the period while the backend is processing from the moment a
+  completed answer becomes available to the UI.
+- Proposed keeping a thinking animation active during the request, then feeding
+  the returned answer into a progressive visual reveal.
+
+### Evidence
+
+- Correctly described the request lifecycle before implementation: wait with an
+  animation, receive the answer, and then relay it through the interface.
+
+### Still unclear
+
+- The difference between revealing an already-complete response and true token
+  streaming from the provider through the backend.
+
+### Next exercise
+
+- Compare one normal JSON response with a streamed response and identify which
+  backend and frontend boundaries would need to change.
+
 ## 2026-08-25 — Conversation history sequencing
 
 ### Practiced or demonstrated

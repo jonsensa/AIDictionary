@@ -1,7 +1,14 @@
 const box = document.querySelector('#context-explainer-box')
 const themeSwitch = box.querySelector('.context-explainer-theme-switch')
-const themes = ['soft-glass', 'dark-utility', 'classic-glass']
+const themes = ['soft-glass', 'dark-utility', 'transparent-utility']
 const themeLabels = ['UI1', 'UI2', 'UI3']
+
+function applyPreviewSurface() {
+  const opacity = document.querySelector('#opacity').value
+  box.style.background = box.dataset.contextTheme === 'soft-glass'
+    ? `rgb(8 8 9 / ${opacity})`
+    : ''
+}
 
 function setTheme(theme) {
   const index = themes.indexOf(theme)
@@ -10,6 +17,7 @@ function setTheme(theme) {
   document.querySelectorAll('[data-theme]').forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.theme === theme))
   })
+  applyPreviewSurface()
 }
 
 function connectRange(id, attribute, suffix = '') {
@@ -26,7 +34,7 @@ function connectSurfaceOpacity() {
   const output = document.querySelector('#opacity-output')
 
   function updateSurface() {
-    box.style.background = `rgb(8 8 9 / ${input.value})`
+    applyPreviewSurface()
     output.value = `${Math.round(input.value * 100)}%`
   }
 

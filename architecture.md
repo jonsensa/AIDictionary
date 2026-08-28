@@ -69,7 +69,7 @@ for each choice and meaningful alternatives considered.
   webpage-level selection listener so users can interact with the UI safely.
 - Implemented: `backend/server.js` exposes `POST /api/explain`, parses JSON,
   validates and limits summary and question requests, calls Gemini's
-  GenerateContent API, and returns the generated answer as JSON.
+  streaming GenerateContent API, and forwards provider-neutral NDJSON events.
 - Implemented: the local backend listens on port 3000 and permits development
   requests from the extension through CORS response headers.
 - Implemented: the backend loads `GEMINI_API_KEY` and optional `GEMINI_MODEL`
@@ -128,10 +128,9 @@ for each choice and meaningful alternatives considered.
   Dragging is clamped to the viewport so the window cannot be lost off-screen.
 - Refined: UI2's primary material is approximately 30% darker and 30% more
   transparent, with backdrop brightness maintaining its near-black character.
-- Implemented: UI3 (`classic-glass`) restores the original balanced grey-glass
-  direction with medium-light graphite material, stronger blur, dark text, and
-  conventional translucent controls. The header switch cycles through all three
-  independent UI designs.
+- Implemented: UI3 (`transparent-utility`) reuses UI2's dark-utility typography,
+  controls, borders, and layout but sets the outer trigger, popup, and follow-up
+  surfaces to 0% opacity. The previous classic light-grey theme was removed.
 - Installed: `simple-liquid-glass` supplies a framework-agnostic
   `<liquid-glass>` web component, and `esbuild` bundles that component locally
   into `vendor/liquid-glass.js`. The dependency is installed without React peer
@@ -165,6 +164,25 @@ for each choice and meaningful alternatives considered.
   annotation that can be expanded when the user wants to review the source.
 - Implemented: summary requests, questions, answers, loading states, and errors
   accumulate as a chat-style conversation instead of replacing one status line.
+- Implemented: pending requests show a looping three-dot thinking indicator.
+  The backend consumes Gemini's SSE `streamGenerateContent` response and exposes
+  provider-neutral NDJSON `delta`, `done`, and `error` events to the extension.
+  The first delta replaces the indicator and subsequent deltas progressively
+  update the safely rendered answer.
+- Confirmed: answers are concise by default (normally 2–4 short sentences or a
+  compact list) and expand only when the user asks for more depth. The output
+  token ceiling remains high enough to avoid cutting off requested detail.
+- Implemented: AI responses render a safe Markdown subset using DOM nodes rather
+  than raw HTML. Bold, italics, inline code, headings, links, and ordered or
+  unordered lists display as interface formatting instead of literal markers.
+- Implemented: Gemini 3.5 Flash uses low thinking effort for this short-form
+  study flow, reducing latency relative to its default medium effort.
+- Implemented: initial Gemini network failures and HTTP 429 or 503 responses are
+  retried up to three times with 400ms then 800ms backoff. Retries stop before
+  any response delta is forwarded, preventing duplicated partial answers.
+- Implemented: while generating, the composer's arrow becomes a compact Stop
+  control. Cancelling aborts the browser fetch, closes the backend stream, and
+  aborts the upstream Gemini request without saving the partial turn to history.
 - Not yet decided: whether summarization starts automatically or requires an
   explicit click.
 - Not yet decided: whether React is necessary for the first version.
@@ -178,7 +196,8 @@ Implemented MVP flow:
 3. The user chooses **Summarize** or enters a question.
 4. The extension sends the selected text and requested action to a backend.
 5. The backend calls the AI service without exposing secret API keys.
-6. The answer returns to the floating window.
+6. Answer deltas stream through the backend into the floating window; the
+   completed answer is then stored in conversation history.
 
 The local boundary and error paths are implemented. A successful live model
 response still requires a valid backend API key and network access.
