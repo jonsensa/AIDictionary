@@ -8,10 +8,11 @@ macOS-inspired interface.
 
 [Open the interactive UI playground](https://jonsensa.github.io/AIDictionary/)
 
-The public playground lets you switch between the three visual directions,
-adjust UI1's surface opacity, drag the contextual window, and preview interface interactions. It is
-a visual demonstration only: AI requests remain in the local extension because
-the Gemini API credential must never be exposed in a public webpage.
+The public playground lets you select its sample paragraph, open the contextual
+window, try its study controls, switch visual directions, tune each theme's
+surface opacity, and drag the floating surfaces. It is a simulated demonstration:
+AI requests remain in the local extension because the Gemini API credential must
+never be exposed in a public webpage.
 
 ## Run locally
 
