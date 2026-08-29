@@ -2,3 +2,9 @@
 .env.*
 node_modules/
 dist-pages/
+
+# Local learning notes and AI-agent guidance
+AGENTS.md
+skills.md
+mistakes.md
+learning-log.md
