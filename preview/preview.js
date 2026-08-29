@@ -51,12 +51,50 @@ themeSwitch.addEventListener('click', () => {
   setTheme(themes[nextIndex])
 })
 
+const previewSaveButton = box.querySelector('.context-explainer-save-answer')
+const previewShelfButton = box.querySelector('.context-explainer-shelf-button')
+
+previewSaveButton.addEventListener('click', () => {
+  previewSaveButton.classList.toggle('context-explainer-saved')
+
+  if (!previewSaveButton.classList.contains('context-explainer-saved')) return
+
+  const origin = previewSaveButton.getBoundingClientRect()
+  const destination = previewShelfButton.getBoundingClientRect()
+  const flyingBookmark = document.createElement('span')
+  flyingBookmark.className = 'context-explainer-save-flight'
+  flyingBookmark.style.left = `${origin.left + origin.width / 2 - 8}px`
+  flyingBookmark.style.top = `${origin.top + origin.height / 2 - 10}px`
+  document.body.appendChild(flyingBookmark)
+
+  flyingBookmark.animate([
+    { transform: 'translate(0, 0) scale(0.9)', opacity: 0.9 },
+    {
+      transform: `translate(${destination.left + destination.width / 2 - origin.left - origin.width / 2}px, ${destination.top + destination.height / 2 - origin.top - origin.height / 2}px) scale(0.45)`,
+      opacity: 0.15,
+    },
+  ], {
+    duration: 280,
+    easing: 'cubic-bezier(0.2, 0.75, 0.25, 1)',
+    fill: 'forwards',
+  }).finished.finally(() => {
+    flyingBookmark.remove()
+    previewShelfButton.classList.add('context-explainer-shelf-received')
+    window.setTimeout(() => previewShelfButton.classList.remove('context-explainer-shelf-received'), 420)
+  })
+})
+
 connectSurfaceOpacity()
 connectRange('frost', 'frost', '%')
 connectRange('scale', 'scale')
 setTheme('soft-glass')
 
-const reloadEvents = new EventSource('/events')
-reloadEvents.onmessage = (event) => {
-  if (event.data === 'reload') window.location.reload()
+if (
+  ['localhost', '127.0.0.1'].includes(window.location.hostname) &&
+  window.location.port === '4173'
+) {
+  const reloadEvents = new EventSource('/events')
+  reloadEvents.onmessage = (event) => {
+    if (event.data === 'reload') window.location.reload()
+  }
 }

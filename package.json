@@ -5,6 +5,7 @@
   "description": "A contextual AI explanation Chrome extension.",
   "scripts": {
     "build": "node scripts/build.js",
+    "build:pages": "node scripts/build-pages.js",
     "preview": "node preview/server.js",
     "server": "node backend/server.js"
   },

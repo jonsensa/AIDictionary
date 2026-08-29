@@ -871,6 +871,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
           question,
           sourceText: selectedText,
         })
+        animateInsightToShelf(savePill)
         savePill.textContent = 'Saved ✓'
         window.setTimeout(() => savePill.remove(), 700)
       } catch (error) {
@@ -887,6 +888,46 @@ function createExplanationBox(selectedText, selectionRectangle) {
     const top = Math.max(rectangle.top - 38, 8)
     savePill.style.left = `${left}px`
     savePill.style.top = `${top}px`
+  }
+
+  function animateInsightToShelf(originElement) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return
+    }
+
+    const origin = originElement.getBoundingClientRect()
+    const destination = shelfButton.getBoundingClientRect()
+    const flyingBookmark = document.createElement('span')
+    flyingBookmark.className = 'context-explainer-save-flight'
+    flyingBookmark.setAttribute('aria-hidden', 'true')
+    flyingBookmark.style.left = `${origin.left + origin.width / 2 - 8}px`
+    flyingBookmark.style.top = `${origin.top + origin.height / 2 - 10}px`
+    document.body.appendChild(flyingBookmark)
+
+    shelfButton.classList.remove('context-explainer-shelf-received')
+
+    const animation = flyingBookmark.animate(
+      [
+        { transform: 'translate(0, 0) scale(0.9)', opacity: 0.9 },
+        {
+          transform: `translate(${destination.left + destination.width / 2 - origin.left - origin.width / 2}px, ${destination.top + destination.height / 2 - origin.top - origin.height / 2}px) scale(0.45)`,
+          opacity: 0.15,
+        },
+      ],
+      {
+        duration: 280,
+        easing: 'cubic-bezier(0.2, 0.75, 0.25, 1)',
+        fill: 'forwards',
+      },
+    )
+
+    animation.finished.finally(() => {
+      flyingBookmark.remove()
+      shelfButton.classList.add('context-explainer-shelf-received')
+      window.setTimeout(() => {
+        shelfButton.classList.remove('context-explainer-shelf-received')
+      }, 420)
+    })
   }
 
   function attachAnswerTools(message, answerText, question) {
@@ -917,6 +958,7 @@ function createExplanationBox(selectedText, selectionRectangle) {
           saveButton.dataset.insightId = insight.id
           saveButton.classList.add('context-explainer-saved')
           saveButton.dataset.tooltip = 'Saved'
+          animateInsightToShelf(saveButton)
         }
       } catch {
         saveButton.dataset.tooltip = 'Save failed'

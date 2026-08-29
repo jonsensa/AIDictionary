@@ -137,6 +137,21 @@
   gap: 3px;
 }
 
+#context-explainer-box .context-explainer-header-actions button,
+#context-explainer-box .context-explainer-action-bar button,
+#context-explainer-box .context-explainer-answer-actions button {
+  border: 1px solid rgb(255 255 255 / 7%);
+  background: rgb(0 0 0 / 20%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+#context-explainer-box .context-explainer-header-actions button:hover,
+#context-explainer-box .context-explainer-action-bar button:hover,
+#context-explainer-box .context-explainer-answer-actions button:hover {
+  border-color: rgb(255 255 255 / 12%);
+  background: rgb(0 0 0 / 32%);
+}
+
 #context-explainer-box .context-explainer-shelf-button,
 #context-explainer-box .context-explainer-save-answer {
   position: relative;
@@ -156,6 +171,31 @@
 
 #context-explainer-box .context-explainer-save-answer.context-explainer-saved::before {
   background: currentColor;
+}
+
+.context-explainer-save-flight {
+  position: fixed;
+  z-index: 2147483647;
+  display: grid;
+  width: 16px;
+  height: 20px;
+  place-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 35%));
+}
+
+.context-explainer-save-flight::before {
+  width: 10px;
+  height: 14px;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 2px;
+  background: rgb(19 19 21 / 82%);
+  content: "";
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+
+#context-explainer-box .context-explainer-shelf-received {
+  animation: context-explainer-shelf-received 400ms ease-out;
 }
 
 #context-explainer-box .context-explainer-material-icon {
@@ -1024,6 +1064,20 @@
   }
 }
 
+@keyframes context-explainer-shelf-received {
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+    color: rgb(242 242 245 / 68%);
+  }
+
+  45% {
+    border-color: rgb(255 255 255 / 24%);
+    background: rgb(255 255 255 / 12%);
+    box-shadow: 0 0 16px rgb(255 255 255 / 16%);
+    color: rgb(255 255 255 / 96%);
+  }
+}
+
 @media (max-width: 480px) {
   #context-explainer-box {
     width: calc(100vw - 16px);
@@ -1046,6 +1100,10 @@
   }
 
   .context-explainer-thinking > span {
+    animation: none;
+  }
+
+  #context-explainer-box .context-explainer-shelf-received {
     animation: none;
   }
 

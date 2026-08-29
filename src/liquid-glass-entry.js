@@ -1,3 +1,10 @@
-import { defineLiquidGlass } from 'simple-liquid-glass/web-component'
+import { LiquidGlassElement } from 'simple-liquid-glass/web-component'
 
-defineLiquidGlass('context-explainer-liquid-glass')
+const contextExplainerTag = 'context-explainer-liquid-glass'
+
+if (!customElements.get(contextExplainerTag)) {
+  customElements.define(
+    contextExplainerTag,
+    class ContextExplainerLiquidGlass extends LiquidGlassElement {},
+  )
+}

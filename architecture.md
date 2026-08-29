@@ -150,6 +150,11 @@ for each choice and meaningful alternatives considered.
   reuses the extension stylesheet and liquid-glass bundle, reloads when visual
   source files change, and exposes opacity, frost, and refraction controls for
   quick visual tuning outside the extension interaction flow.
+- Implemented on the saved-insights feature branch: `npm run build:pages`
+  creates an allowlisted static playground artifact in `dist-pages`. A GitHub
+  Actions workflow deploys that artifact to GitHub Pages from `main`, while the
+  README links visitors to the public visual demo. Backend code, environment
+  files, and AI credentials are never included in the Pages artifact.
 - Implemented: the main question composer begins as a single line, grows with
   multiline content to a 112px maximum, and then scrolls internally. Enter sends
   while Shift+Enter inserts a newline; the circular arrow reflects whether text

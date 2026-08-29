@@ -245,5 +245,12 @@
   x();
 
   // src/liquid-glass-entry.js
-  x("context-explainer-liquid-glass");
+  var contextExplainerTag = "context-explainer-liquid-glass";
+  if (!customElements.get(contextExplainerTag)) {
+    customElements.define(
+      contextExplainerTag,
+      class ContextExplainerLiquidGlass extends y {
+      }
+    );
+  }
 })();
