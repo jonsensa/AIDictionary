@@ -148,8 +148,8 @@ for each choice and meaningful alternatives considered.
   pseudo-element refraction simulation has been removed.
 - Implemented: `npm run preview` starts a local UI playground on port 4173. It
   reuses the extension stylesheet and liquid-glass bundle, reloads when visual
-  source files change, and exposes opacity, frost, and refraction controls for
-  quick visual tuning outside the extension interaction flow.
+  source files change, and exposes UI1 surface-opacity tuning plus a draggable
+  preview window for quick visual testing outside the extension interaction flow.
 - Implemented on the saved-insights feature branch: `npm run build:pages`
   creates an allowlisted static playground artifact in `dist-pages`. A GitHub
   Actions workflow deploys that artifact to GitHub Pages from `main`, while the

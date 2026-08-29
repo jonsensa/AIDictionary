@@ -20,15 +20,6 @@ function setTheme(theme) {
   applyPreviewSurface()
 }
 
-function connectRange(id, attribute, suffix = '') {
-  const input = document.querySelector(`#${id}`)
-  const output = document.querySelector(`#${id}-output`)
-  input.addEventListener('input', () => {
-    box.setAttribute(attribute, input.value)
-    output.value = suffix === '%' ? `${Math.round(input.value * 100)}%` : `${input.value}${suffix}`
-  })
-}
-
 function connectSurfaceOpacity() {
   const input = document.querySelector('#opacity')
   const output = document.querySelector('#opacity-output')
@@ -40,6 +31,54 @@ function connectSurfaceOpacity() {
 
   input.addEventListener('input', updateSurface)
   updateSurface()
+}
+
+function makePreviewDraggable(element) {
+  const handle = element.querySelector('header')
+  let dragOffsetX = 0
+  let dragOffsetY = 0
+  let draggedPointerId = null
+
+  handle.addEventListener('pointerdown', (event) => {
+    if (event.target instanceof Element && event.target.closest('button')) return
+
+    event.preventDefault()
+    const rectangle = element.getBoundingClientRect()
+    dragOffsetX = event.clientX - rectangle.left
+    dragOffsetY = event.clientY - rectangle.top
+    element.style.animation = 'none'
+    handle.classList.add('context-explainer-dragging')
+    draggedPointerId = event.pointerId
+  })
+
+  document.addEventListener('pointermove', (event) => {
+    if (event.pointerId !== draggedPointerId) return
+
+    const viewportPadding = 8
+    const maximumLeft = window.innerWidth - element.offsetWidth - viewportPadding
+    const maximumTop = window.innerHeight - element.offsetHeight - viewportPadding
+    const left = Math.min(
+      Math.max(event.clientX - dragOffsetX, viewportPadding),
+      Math.max(maximumLeft, viewportPadding),
+    )
+    const top = Math.min(
+      Math.max(event.clientY - dragOffsetY, viewportPadding),
+      Math.max(maximumTop, viewportPadding),
+    )
+
+    element.style.left = `${left}px`
+    element.style.right = 'auto'
+    element.style.top = `${top}px`
+  })
+
+  function stopDragging(event) {
+    if (event.pointerId !== draggedPointerId) return
+    draggedPointerId = null
+    handle.classList.remove('context-explainer-dragging')
+  }
+
+  document.addEventListener('pointerup', stopDragging)
+  document.addEventListener('pointercancel', stopDragging)
 }
 
 document.querySelectorAll('[data-theme]').forEach((button) => {
@@ -85,8 +124,7 @@ previewSaveButton.addEventListener('click', () => {
 })
 
 connectSurfaceOpacity()
-connectRange('frost', 'frost', '%')
-connectRange('scale', 'scale')
+makePreviewDraggable(box)
 setTheme('soft-glass')
 
 if (

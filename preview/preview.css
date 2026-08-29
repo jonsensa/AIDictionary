@@ -37,7 +37,7 @@ body {
 .preview-controls label { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin-top: 10px; color: rgb(255 255 255 / 70%); font-size: 12px; }
 .preview-controls input { grid-column: 1 / -1; width: 100%; accent-color: #d3d3d3; }
 
-#context-explainer-box { left: auto !important; right: 8vw; top: 15vh !important; }
+#context-explainer-box { left: auto; right: 8vw; top: 15vh; }
 
 @media (max-width: 760px) {
   body { overflow-y: auto; }

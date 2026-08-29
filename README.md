@@ -9,7 +9,7 @@ macOS-inspired interface.
 [Open the interactive UI playground](https://jonsensa.github.io/AIDictionary/)
 
 The public playground lets you switch between the three visual directions,
-adjust opacity, frost, and refraction, and preview interface interactions. It is
+adjust UI1's surface opacity, drag the contextual window, and preview interface interactions. It is
 a visual demonstration only: AI requests remain in the local extension because
 the Gemini API credential must never be exposed in a public webpage.
 
