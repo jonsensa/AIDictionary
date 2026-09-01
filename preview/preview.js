@@ -22,8 +22,8 @@ let selectedDemoText = selectionPreview.textContent.trim()
 function configurePreviewGlass(theme) {
   const ui1 = theme === 'soft-glass'
   const attributes = ui1
-    ? { frost: '0.22', blur: '24', scale: '42', alpha: '0.5', 'lens-strength': '0.5' }
-    : { frost: '0', blur: '0', scale: '0', alpha: '0', 'lens-strength': '0' }
+    ? { frost: '0.22', blur: '8', scale: '160', alpha: '0.7', 'lens-strength': '0.8', 'lens-center': '0.5 0.5' }
+    : { frost: '0', blur: '0', scale: '0', alpha: '0', 'lens-strength': '0', 'lens-center': '0.5 0.5' }
 
   Object.entries(attributes).forEach(([name, value]) => box.setAttribute(name, value))
 }

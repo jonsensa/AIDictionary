@@ -118,11 +118,12 @@ for each choice and meaningful alternatives considered.
   brightness-adjusted backdrop keeps light text readable while the page remains
   recognizable through the glass.
 - Refined after visual testing: UI1 uses a 38% near-black surface, 22% frost,
-  24px blur, and a restrained refraction scale of 42. Lower displacement alpha
-  and lens strength prevent background text from appearing duplicated while
-  retaining a visible liquid-glass rim.
-- Refined: a 16px host backdrop blur sits beneath the library refraction layer
-  so readable webpage text does not visually compete with the popup content.
+  an 8px library blur, and a refraction scale of 160. A 0.7 displacement alpha
+  and 0.8 rim-lens strength make background displacement visible at the edges.
+- Refined: UI1's host backdrop blur is limited to 6px so it softens readable
+  webpage text without overpowering the library's refraction layer.
+- Confirmed: UI1 uses a fixed centered lens. It does not use the library demo's
+  cursor-following interactive light or liquid-motion presets.
 - Implemented: the lookup window remains fixed relative to the viewport while
   the webpage scrolls and can be dragged by its header with mouse, pen, or touch.
   Dragging is clamped to the viewport so the window cannot be lost off-screen.

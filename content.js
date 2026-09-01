@@ -30,14 +30,15 @@ function configureLiquidGlass(element) {
     ? {
         radius: '22',
         frost: '0.22',
-        blur: '24',
+        blur: '8',
         saturation: '125',
         displace: '2',
-        scale: '42',
+        scale: '160',
         lightness: '48',
-        alpha: '0.5',
+        alpha: '0.7',
         lens: 'rim',
-        'lens-strength': '0.5',
+        'lens-strength': '0.8',
+        'lens-center': '0.5 0.5',
         'border-color': 'rgba(255, 255, 255, 0.28)',
       }
     : {
@@ -51,6 +52,7 @@ function configureLiquidGlass(element) {
       alpha: '0',
       lens: 'rim',
       'lens-strength': '0',
+      'lens-center': '0.5 0.5',
       'border-color': 'rgba(255, 255, 255, 0)',
     }
 

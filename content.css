@@ -860,8 +860,8 @@
   box-shadow:
     0 28px 72px rgb(25 28 30 / 24%),
     0 7px 22px rgb(25 28 30 / 13%);
-  backdrop-filter: blur(16px) saturate(120%) brightness(72%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%) brightness(72%);
+  backdrop-filter: blur(6px) saturate(120%) brightness(72%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%) brightness(72%);
   transition:
     background-color 160ms ease,
     box-shadow 160ms ease;
