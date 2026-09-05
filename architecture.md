@@ -77,6 +77,10 @@ for each choice and meaningful alternatives considered.
 - Implemented for deployment: `wrangler.jsonc` defines the Worker entry point and
   non-secret Gemini model. `GEMINI_API_KEY` must be installed as a Cloudflare
   secret and is never committed to the repository.
+- Deployed: the production API is hosted at
+  `https://aidictionary-api.ai-dictionary.workers.dev`. The extension sends
+  requests to its `/api/explain` route, while `/health` provides a secret-free
+  availability check.
 - Implemented: the local backend listens on port 3000 and permits development
   requests from the extension through CORS response headers.
 - Implemented: the backend loads `GEMINI_API_KEY` and optional `GEMINI_MODEL`
