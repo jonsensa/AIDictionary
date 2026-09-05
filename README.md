@@ -22,11 +22,22 @@ npm run preview
 
 Then open `http://localhost:4173/`.
 
+Run the Cloudflare Worker backend locally with:
+
+```text
+npm run worker:dev
+```
+
+The original Node backend remains available through `npm run server` during the
+hosting migration.
+
 ## Project structure
 
 - `content.js` — selected-text behavior and contextual interface
 - `content.css` — extension themes and glass materials
 - `backend/server.js` — local Gemini API boundary
+- `worker/index.js` — deployable Cloudflare Worker API
+- `wrangler.jsonc` — Cloudflare Worker deployment configuration
 - `preview/` — interactive UI playground
 - `scripts/build-pages.js` — allowlisted GitHub Pages build
 

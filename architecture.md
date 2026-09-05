@@ -70,6 +70,13 @@ for each choice and meaningful alternatives considered.
 - Implemented: `backend/server.js` exposes `POST /api/explain`, parses JSON,
   validates and limits summary and question requests, calls Gemini's
   streaming GenerateContent API, and forwards provider-neutral NDJSON events.
+- Implemented for deployment: `worker/index.js` exposes the same API contract as
+  a Cloudflare Worker, including validation, Gemini retries, streaming NDJSON,
+  safe errors, CORS preflight handling, and a `GET /health` endpoint. The local
+  Node backend remains available while deployment is being verified.
+- Implemented for deployment: `wrangler.jsonc` defines the Worker entry point and
+  non-secret Gemini model. `GEMINI_API_KEY` must be installed as a Cloudflare
+  secret and is never committed to the repository.
 - Implemented: the local backend listens on port 3000 and permits development
   requests from the extension through CORS response headers.
 - Implemented: the backend loads `GEMINI_API_KEY` and optional `GEMINI_MODEL`

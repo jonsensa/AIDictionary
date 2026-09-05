@@ -7,12 +7,15 @@
     "build": "node scripts/build.js",
     "build:pages": "node scripts/build-pages.js",
     "preview": "node preview/server.js",
-    "server": "node backend/server.js"
+    "server": "node backend/server.js",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy"
   },
   "dependencies": {
     "simple-liquid-glass": "^4.1.0"
   },
   "devDependencies": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "wrangler": "^4.129.0"
   }
 }

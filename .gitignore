@@ -2,6 +2,8 @@
 .env.*
 node_modules/
 dist-pages/
+.wrangler/
+.dev.vars
 
 # Local learning notes and AI-agent guidance
 AGENTS.md

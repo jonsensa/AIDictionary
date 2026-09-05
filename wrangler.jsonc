@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "aidictionary-api",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-09-05",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "GEMINI_MODEL": "gemini-3.5-flash"
+  }
+}
